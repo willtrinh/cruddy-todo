@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-
+const Promise = require('bluebird');
+const filePromise = Promise.promisifyAll(fs);
 var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
@@ -25,19 +26,52 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = [];
-  fs.readdir(path.join(exports.dataDir), (err, files) => {
-    if (err) {
-      console.log('cannot read files');
-    } else {
-      _.each(files, file => {
-        // get just the id without .txt extension
-        var id = path.parse(file).name;
-        data.push({id, text: id});
+  // var data = [];
+  // fs.readdir(path.join(exports.dataDir), (err, files) => {
+  //   if (err) {
+  //     console.log('cannot read files');
+  //   } else {
+  //     _.each(files, file => {
+  //       // get just the id without .txt extension
+  //       var id = path.parse(file).name;
+  //       data.push({id, text: id});
+  //     });
+  //     callback(null, data);
+  //   }
+  // });
+  return filePromise.readdirAsync(exports.dataDir).then((files) => {
+    var todos = _.map(files, (file) => {
+      var id = path.parse(file).name;
+      var filePath = path.join(exports.dataDir, file);
+      return filePromise.readFileAsync(filePath, 'utf8').then((text) => {
+        return {id, text};
       });
-      callback(null, data);
-    }
+    });
+    Promise.all(todos).then(todos => {
+      callback(null, todos);
+    });
+  }).catch((err) => {
+    callback(err);
   });
+
+  // fs.readdir(exports.dataDir, (err, files) => {
+  //   if (err) {
+  //     callback(err);
+  //   } else {
+  //     var data = _.map(files, (file) => {
+  //       var id = path.parse(file).name;
+  //       var filePath = path.join(exports.dataDir, file);
+  //       return filePromise(filePath).then(fileData => {
+  //         return {id: id, text: fileData.toString()};
+  //       });
+  //     });
+  //     Promise.all(data).then(items => {
+  //       callback(null, items);
+  //     }).catch(err => {
+  //       callback(err);
+  //     });
+  //   }
+  // });
 };
 
 exports.readOne = (id, callback) => {
