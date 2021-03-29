@@ -39,20 +39,6 @@ const writeCounter = (count, callback) => {
 // Public API - Fix this function //////////////////////////////////////////////
 
 exports.getNextUniqueId = (callback) => {
-  // readCounter((err, counter) => {
-  //   if (err) {
-  //     console.log('error: ', err);
-  //     callback(null, 0);
-  //   } else {
-  //     writeCounter((err) => {
-  //       if (err) {
-  //         console.log('write eror: ', err);
-  //       } else {
-  //         callback(null, zeroPaddedNumber(counter + 1));
-  //       }
-  //     });
-  //   }
-  // });
   readCounter((err, fileData) => {
     if (err) {
       console.log('error: ', err);
@@ -60,7 +46,6 @@ exports.getNextUniqueId = (callback) => {
       writeCounter(fileData + 1, callback);
     }
   });
-  // return zeroPaddedNumber(counter);
 };
 
 
