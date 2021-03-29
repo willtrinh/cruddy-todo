@@ -12,7 +12,7 @@ exports.create = (text, callback) => {
     if (err) {
       console.log('create error: ', err);
     } else {
-      var file = `./test/testData/${id}.txt`;
+      var file = path.join(exports.dataDir, `${id}.txt`);
       fs.writeFile(file, text, (err) => {
         if (err) {
           console.log('cannot write to file');
@@ -22,16 +22,28 @@ exports.create = (text, callback) => {
       });
     }
   });
-  // var id = counter.getNextUniqueId();
-  // items[id] = text;
-  // callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  var data = [];
+  fs.readdir(path.join(exports.dataDir), (err, files) => {
+    if (err) {
+      console.log('cannot read files');
+    } else {
+      _.each(files, file => {
+        // get just the id without .txt extension
+        var id = path.parse(file).name;
+        data.push({id, text: id});
+      });
+      callback(null, data);
+    }
+
   });
-  callback(null, data);
+
+  // var data = _.map(items, (text, id) => {
+  //   return { id, text };
+  // });
+  // callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
